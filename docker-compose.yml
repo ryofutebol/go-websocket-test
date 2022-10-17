@@ -1,0 +1,15 @@
+version: "3"
+services:
+  go: # サービス名
+    container_name: sample-go
+    platform: linux/x86_64
+    build: # ビルドに使うDockerファイルのパス
+      context: .
+      dockerfile: ./build/Dockerfile
+    tty: true # コンテナの永続化
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./cmd:/go/src/app # マウントディレクトリ
+    environment:
+      - TZ=Asia/Tokyo
