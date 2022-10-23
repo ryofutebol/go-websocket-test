@@ -10,12 +10,18 @@ import (
 	"golang.org/x/net/websocket"
 )
 
+var clients = make(map[*websocket.Conn]bool)
+
+// メッセージブロードキャストチャネル
+var broadcast = make(chan string)
+
 //go:embed templates/index.html
 var indexTmpl embed.FS
 
 func main() {
 	http.HandleFunc("/", index)
-	http.Handle("/ws", websocket.Handler(msgHandler))
+	http.Handle("/ws", websocket.Handler(handleConnection))
+	go handleMessages()
 
 	err := http.ListenAndServe(":3000", nil)
 	if err != nil {
@@ -34,7 +40,7 @@ func index(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func msgHandler(ws *websocket.Conn) {
+func handleConnection(ws *websocket.Conn) {
 	defer ws.Close()
 
 	// 初回のメッセージを送信
@@ -43,19 +49,30 @@ func msgHandler(ws *websocket.Conn) {
 		log.Fatalln(err)
 	}
 
+	clients[ws] = true
 	for {
 		// メッセージを受信する
 		msg := ""
 		err = websocket.Message.Receive(ws, &msg)
-		log.Println(msg)
 		if err != nil {
 			log.Fatalln(err)
 		}
+		// 受け取ったメッセージをbroadcastチャネルに送る
+		broadcast <- msg
+	}
+}
 
-		// メッセージを返信する
-		err := websocket.Message.Send(ws, fmt.Sprintf(`%q というメッセージを受け取りました。`, msg))
-		if err != nil {
-			log.Fatalln(err)
+func handleMessages() {
+	for {
+		// broadcastチャネルからメッセージを受け取る
+		msg := <-broadcast
+		// 接続中の全クライアントにメッセージを送る
+		for client := range clients {
+			// メッセージを返信する
+			err := websocket.Message.Send(client, fmt.Sprintf(`%q というメッセージを受け取りました。`, msg))
+			if err != nil {
+				log.Fatalln(err)
+			}
 		}
 	}
 }
