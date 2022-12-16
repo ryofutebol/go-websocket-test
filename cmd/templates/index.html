@@ -4,54 +4,50 @@
     <meta charset="UTF-8" />
     <title>sample</title>
     <script>
-        var socket = null;
-
-        // サーバーに接続する (一連の処理)
+        // サーバーに接続 (一連の処理)
         window.onload = function () {
             socket = new WebSocket("ws://localhost:3000/ws");
             socket.onopen = function () {
-                append_message("system", "connect to server");
+                updateMessage("システム", "接続しました！");
             };
             socket.onmessage = function (event) {
                 // サーバーからメッセージを受け取る
-                append_message("server", event.data);
+                updateMessage("サーバー", event.data);
             };
         };
 
         // メッセージ欄を更新する
-        function append_message(name, message) {
-            let li_name = document.createElement("li");
-            let name_txt = document.createTextNode(name);
-            li_name.appendChild(name_txt);
+        function updateMessage(name, message) {
+            let listName = document.createElement("li");
+            let nameText = document.createTextNode(name);
+            listName.appendChild(nameText);
 
-            let ul_message = document.createElement("ul");
+            let messages = document.createElement("ul");
 
-            let li_message = document.createElement("li");
-            let message_txt = document.createTextNode(message);
-            li_message.appendChild(message_txt);
+            let listMessage = document.createElement("li");
+            let messageText = document.createTextNode(message);
+            listMessage.appendChild(messageText);
 
-            ul_message.appendChild(li_message);
+            messages.appendChild(listMessage);
 
-            li_name.appendChild(ul_message);
+            listName.appendChild(messages);
 
             let ul = document.getElementById("messages");
-            ul.appendChild(li_name);
+            ul.appendChild(listName);
         }
 
         // サーバーにメッセージを送信する
         function send() {
-            let send_msg = document.getElementById("message");
-            let msg = send_msg.value;
+            let sendMessage = document.getElementById("message");
+            let msg = sendMessage.value;
             if (msg == "") {
                 return;
             }
             socket.send(msg);
-            append_message("you", msg);
-            send_msg.value = "";
+            updateMessage("あなた", msg);
+            sendMessage.value = "";
         }
     </script>
-
-    <!-- <script type="text/javascript" src="../js/websocket.js"></script> -->
 </head>
 <body>
 <!-- 送信欄 -->

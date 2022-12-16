@@ -44,7 +44,7 @@ func handleConnection(ws *websocket.Conn) {
 	defer ws.Close()
 
 	// 初回のメッセージを送信
-	err := websocket.Message.Send(ws, "こんにちは！ :)")
+	err := websocket.Message.Send(ws, "こんにちは！")
 	if err != nil {
 		log.Fatalln(err)
 	}
